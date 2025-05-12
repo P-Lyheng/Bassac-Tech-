@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard | Bassac Academy</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Custom styles -->
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+        }
+        
+        .dashboard-card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+            height: 100%;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-card {
+            border-left: 4px solid;
+            border-radius: 6px;
+        }
+        
+        .class-card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+            height: 100%;
+        }
+        
+        .class-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .class-card .card-body {
+            position: relative;
+        }
+        
+        .class-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
+        
+        .session-card {
+            border-left: 4px solid;
+            margin-bottom: 1rem;
+        }
+        
+        .active-session {
+            border-color: #28a745;
+        }
+        
+        .scheduled-session {
+            border-color: #007bff;
+        }
+        
+        .completed-session {
+            border-color: #6c757d;
+        }
+        
+        .session-time {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        
+        .materials-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .material-item {
+            border-bottom: 1px solid #dee2e6;
+            padding: 10px 0;
+        }
+        
+        .material-item:last-child {
+            border-bottom: none;
+        }
+        
+        .join-btn {
+            white-space: nowrap;
+        }
+        
+        .modal-header-success {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .modal-header-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .profile-section {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .avatar-placeholder {
+            width: 100px;
+            height: 100px;
+            background-color: #e9ecef;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: #adb5bd;
+        }
+        
+        @media (max-width: 768px) {
+            .stat-card {
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">Bassac Academy</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="student-dashboard.html">
+                            <i class="fas fa-tachometer-alt me-1"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="student-classes.html">
+                            <i class="fas fa-book me-1"></i> My Classes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="student-materials.html">
+                            <i class="fas fa-file-alt me-1"></i> Materials
+                        </a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="dropdown">
+                        <a class="text-white text-decoration-none dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle me-1"></i>
+                            <span id="username-display">Student</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="student-profile.html"><i class="fas fa-user me-2"></i>Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><button class="dropdown-item" id="logout-btn"><i class="fas fa-sign-out-alt me-2"></i>Logout</button></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row align-items-center mb-4">
+            <div class="col">
+                <h1 class="mb-0">Student Dashboard</h1>
+                <p class="text-muted mb-0">Welcome back, <span id="student-name">Student</span>!</p>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#joinClassModal">
+                    <i class="fas fa-plus-circle me-1"></i> Join New Class
+                </button>
+            </div>
+        </div>
+
+        <!-- Overview Cards -->
+        <div class="row mb-4">
+            <div class="col-md-4 mb-3">
+                <div class="card stat-card h-100" style="border-left-color: #007bff;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted">My Classes</h6>
+                                <h3 id="classes-count">0</h3>
+                            </div>
+                            <div class="card-icon text-primary">
+                                <i class="fas fa-book"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card stat-card h-100" style="border-left-color: #28a745;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted">Active Sessions</h6>
+                                <h3 id="active-sessions-count">0</h3>
+                            </div>
+                            <div class="card-icon text-success">
+                                <i class="fas fa-video"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card stat-card h-100" style="border-left-color: #ffc107;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="text-muted">Materials</h6>
+                                <h3 id="materials-count">0</h3>
+                            </div>
+                            <div class="card-icon text-warning">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Active Sessions -->
+            <div class="col-lg-6 mb-4">
+                <div class="card dashboard-card">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Active Sessions</h5>
+                        <button class="btn btn-sm btn-outline-primary" id="refresh-active-sessions">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="active-sessions-loading" class="text-center my-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Loading active sessions...</p>
+                        </div>
+                        <div id="active-sessions-empty" class="text-center my-4 d-none">
+                            <i class="fas fa-video-slash fa-3x text-muted mb-3"></i>
+                            <p>No active sessions at the moment.</p>
+                            <p class="small text-muted">Check your schedule for upcoming classes.</p>
+                        </div>
+                        <div id="active-sessions-container">
+                            <!-- Active sessions will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upcoming Sessions -->
+            <div class="col-lg-6 mb-4">
+                <div class="card dashboard-card">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Upcoming Sessions</h5>
+                        <button class="btn btn-sm btn-outline-primary" id="refresh-upcoming-sessions">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="upcoming-sessions-loading" class="text-center my-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Loading upcoming sessions...</p>
+                        </div>
+                        <div id="upcoming-sessions-empty" class="text-center my-4 d-none">
+                            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                            <p>No upcoming sessions scheduled.</p>
+                        </div>
+                        <div id="upcoming-sessions-container">
+                            <!-- Upcoming sessions will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- My Classes -->
+            <div class="col-lg-8 mb-4">
+                <div class="card dashboard-card">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">My Classes</h5>
+                        <a href="student-classes.html" class="btn btn-sm btn-outline-primary">
+                            View All <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <div id="classes-loading" class="text-center my-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Loading classes...</p>
+                        </div>
+                        <div id="classes-empty" class="text-center my-4 d-none">
+                            <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                            <p>You haven't joined any classes yet.</p>
+                            <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#joinClassModal">
+                                <i class="fas fa-plus-circle me-1"></i> Join a Class
+                            </button>
+                        </div>
+                        <div id="classes-container" class="row row-cols-1 row-cols-md-2 g-4">
+                            <!-- Classes will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Materials -->
+            <div class="col-lg-4 mb-4">
+                <div class="card dashboard-card">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Recent Materials</h5>
+                        <a href="student-materials.html" class="btn btn-sm btn-outline-primary">
+                            View All <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <div id="materials-loading" class="text-center my-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Loading materials...</p>
+                        </div>
+                        <div id="materials-empty" class="text-center my-4 d-none">
+                            <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                            <p>No materials available yet.</p>
+                        </div>
+                        <div id="materials-container" class="materials-list">
+                            <!-- Materials will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Join Class Modal -->
+    <div class="modal fade" id="joinClassModal" tabindex="-1" aria-labelledby="joinClassModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header modal-header-primary">
+                    <h5 class="modal-title" id="joinClassModalLabel">Join a Class</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="join-class-form">
+                        <div class="mb-3">
+                            <label for="class-code" class="form-label">Class Code</label>
+                            <input type="text" class="form-control" id="class-code" placeholder="Enter class code" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="class-password" class="form-label">Class Password</label>
+                            <input type="password" class="form-control" id="class-password" placeholder="Enter class password" required>
+                        </div>
+                        <div class="alert alert-danger d-none" id="join-class-error"></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="join-class-btn">Join Class</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- App scripts -->
+    <script src="../js/auth.js"></script>
+    <script src="../js/student-dashboard.js"></script>
+</body>
+</html>

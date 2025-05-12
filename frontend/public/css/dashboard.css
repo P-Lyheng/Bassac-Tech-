@@ -1,0 +1,54 @@
+/* Dashboard-specific styles */
+.stats-card {
+    border-radius: 10px;
+    transition: transform 0.3s;
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+}
+
+.stats-card h2 {
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+
+.class-card {
+    height: 100%;
+    transition: transform 0.3s;
+}
+
+.class-card:hover {
+    transform: translateY(-5px);
+}
+
+.active-session-card {
+    border-left: 4px solid #198754;
+}
+
+.session-card-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.session-card-actions {
+    margin-top: auto;
+}
+
+.badge {
+    font-size: 0.8rem;
+    padding: 0.35em 0.65em;
+}
+
+.scrollable-table {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .stats-card h2 {
+        font-size: 2rem;
+    }
+}
