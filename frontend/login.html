@@ -10,9 +10,57 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Loader CSS -->
+    <link rel="stylesheet" href="css/loader.css">
+    <style>
+        .verification-notice {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            border-left: 4px solid #4a6cf7;
+            display: none;
+        }
+        
+        .verification-form {
+            display: none;
+            margin-top: 20px;
+        }
+        
+        .password-input-wrapper {
+            position: relative;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #6c757d;
+        }
+        
+        .password-toggle:hover {
+            color: #495057;
+        }
+    </style>
 </head>
 
 <body>
+    <!-- Page Loader -->
+    <div class="page-loader" style="display: none; opacity: 0;">
+        <div class="loader-content">
+            <div class="loader-spinner">
+                <div></div>
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+            <div class="loader-text">Loading</div>
+            <div class="loader-subtext">Please wait...</div>
+        </div>
+    </div>
+
     <!-- Simple Navigation -->
     <nav class="navbar navbar-expand-lg">
         <div class="container">
@@ -28,7 +76,7 @@
                         <a class="nav-link" href="/">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link btn btn-primary sign-up-btn" href="/auth/register">Sign Up</a>
+                        <a class="nav-link btn btn-primary sign-up-btn" href="/register">Sign Up</a>
                     </li>
                 </ul>
             </div>
@@ -37,7 +85,7 @@
 
     <!-- Login Form -->
     <div class="container">
-        <div class="auth-container">
+        <div class="auth-container fade-in-up">
             <div class="auth-header">
                 <h2>Welcome Back</h2>
                 <p>Log in to your Bassac Academy account</p>
@@ -51,7 +99,12 @@
 
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required placeholder="Enter your password">
+                    <div class="password-input-wrapper">
+                        <input type="password" id="password" name="password" required placeholder="Enter your password">
+                        <span class="password-toggle" id="toggle-password">
+                            <i class="fa fa-eye-slash"></i>
+                        </span>
+                    </div>
                 </div>
 
                 <div class="form-check mb-3">
@@ -65,89 +118,265 @@
                     Invalid email or password. Please try again.
                 </div>
 
-                <button type="submit" class="btn btn-primary">Log In</button>
+                <button type="submit" class="btn btn-primary" data-loading-text="Logging in...">Log In</button>
             </form>
 
+            <!-- Verification Notice (displays when email needs verification) -->
+            <div class="verification-notice" id="verification-notice">
+                <h5><i class="fas fa-envelope me-2"></i> Email Verification Required</h5>
+                <p>It looks like your email address hasn't been verified yet. Please check your inbox for the verification code or request a new one.</p>
+                <div class="d-grid gap-2">
+                    <button id="go-to-verify" class="btn btn-outline-primary">Go to Verification Page</button>
+                    <button id="show-verify-form" class="btn btn-link">I have a verification code</button>
+                </div>
+            </div>
+
+            <!-- Inline Verification Form -->
+            <div class="verification-form" id="verification-form">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Verify Your Email</h5>
+                        <div class="mb-3">
+                            <label for="verification-code" class="form-label">Verification Code</label>
+                            <input type="text" class="form-control" id="verification-code" placeholder="Enter the 6-digit code">
+                        </div>
+                        <div class="alert alert-danger d-none" id="verification-error"></div>
+                        <div class="d-grid">
+                            <button id="verify-code-btn" class="btn btn-primary">Verify</button>
+                        </div>
+                        <div class="text-center mt-3">
+                            <button id="resend-code-btn" class="btn btn-link">Resend Code</button>
+                            <button id="cancel-verify" class="btn btn-link text-secondary">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="auth-footer">
-                <p>Don't have an account? <a href="/auth/register">Sign Up</a></p>
-                <p><a href="/auth/forgot-password">Forgot Password?</a></p>
+                <p>Don't have an account? <a href="/register">Sign Up</a></p>
+                <p><a href="/forgot-password">Forgot Password?</a></p>
             </div>
         </div>
     </div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Loader JS -->
+    <script src="js/loader.js"></script>
 
     <!-- Login JS -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-    const loginForm = document.getElementById('login-form');
-    const loginError = document.getElementById('login-error');
-    
-    loginForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        // Hide any previous error messages
-        loginError.classList.add('d-none');
-        
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        
-        console.log('Form submission - Email:', email);
-        
-        try {
-            console.log('Sending login request...');
+            const loginForm = document.getElementById('login-form');
+            const loginError = document.getElementById('login-error');
+            const verificationNotice = document.getElementById('verification-notice');
+            const verificationForm = document.getElementById('verification-form');
+            const goToVerifyBtn = document.getElementById('go-to-verify');
+            const showVerifyFormBtn = document.getElementById('show-verify-form');
+            const cancelVerifyBtn = document.getElementById('cancel-verify');
+            const verifyCodeBtn = document.getElementById('verify-code-btn');
+            const resendCodeBtn = document.getElementById('resend-code-btn');
+            const verificationError = document.getElementById('verification-error');
+            const togglePassword = document.getElementById('toggle-password');
+            const passwordField = document.getElementById('password');
             
-            const response = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ email, password }),
-                credentials: 'include'
+            // Email from login form
+            let userEmail = '';
+            
+            // Password toggle functionality
+            togglePassword.addEventListener('click', function() {
+                const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordField.setAttribute('type', type);
+                this.querySelector('i').classList.toggle('fa-eye');
+                this.querySelector('i').classList.toggle('fa-eye-slash');
             });
             
-            console.log('Response status:', response.status);
+            // Go to verification page button
+            goToVerifyBtn.addEventListener('click', function() {
+                window.location.href = `/verify-email?email=${encodeURIComponent(userEmail)}`;
+            });
             
-            // Try to get the response body
-            let data;
-            try {
-                data = await response.json();
-                console.log('Response data:', data);
-            } catch (jsonError) {
-                console.error('Error parsing JSON response:', jsonError);
-                data = { message: 'Could not parse server response' };
-            }
+            // Show verification form
+            showVerifyFormBtn.addEventListener('click', function() {
+                verificationNotice.style.display = 'none';
+                verificationForm.style.display = 'block';
+            });
             
-            if (!response.ok) {
-                throw new Error(data.message || 'Login failed');
-            }
+            // Cancel verification
+            cancelVerifyBtn.addEventListener('click', function() {
+                verificationForm.style.display = 'none';
+                verificationNotice.style.display = 'block';
+            });
             
-            console.log('Login successful');
+            // Handle verification code submission
+            verifyCodeBtn.addEventListener('click', async function() {
+                const verificationCode = document.getElementById('verification-code').value.trim();
+                verificationError.classList.add('d-none');
+                
+                if (!verificationCode || verificationCode.length !== 6) {
+                    verificationError.textContent = 'Please enter a valid 6-digit verification code';
+                    verificationError.classList.remove('d-none');
+                    return;
+                }
+                
+                try {
+                    // Show loader
+                    BassacLoader.show('Verifying email...');
+                    
+                    const response = await fetch('/api/auth/verify-otp', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            email: userEmail,
+                            otp: verificationCode
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Verification failed');
+                    }
+                    
+                    // Success - show message and redirect
+                    BassacLoader.showSuccessThenRedirect(
+                        'Email verified successfully!',
+                        data.user.role === 'teacher' ? '/dashboard/teacher' : '/dashboard/student'
+                    );
+                    
+                } catch (error) {
+                    // Hide loader
+                    BassacLoader.hide();
+                    
+                    // Show error
+                    verificationError.textContent = error.message || 'Verification failed. Please try again.';
+                    verificationError.classList.remove('d-none');
+                }
+            });
             
-            // Store token in localStorage
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
+            // Handle resend code
+            resendCodeBtn.addEventListener('click', async function() {
+                try {
+                    // Show loader
+                    BassacLoader.show('Sending new code...');
+                    
+                    const response = await fetch('/api/auth/resend-otp', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            email: userEmail
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Failed to resend code');
+                    }
+                    
+                    // Hide loader
+                    BassacLoader.hide();
+                    
+                    // Show success message
+                    verificationError.textContent = 'A new verification code has been sent to your email';
+                    verificationError.classList.remove('d-none');
+                    verificationError.classList.remove('alert-danger');
+                    verificationError.classList.add('alert-success');
+                    
+                } catch (error) {
+                    // Hide loader
+                    BassacLoader.hide();
+                    
+                    // Show error
+                    verificationError.textContent = error.message || 'Failed to resend code. Please try again.';
+                    verificationError.classList.add('alert-danger');
+                    verificationError.classList.remove('alert-success');
+                    verificationError.classList.remove('d-none');
+                }
+            });
             
-            // Redirect based on user role
-            const userRole = data.user.role.toLowerCase();
-            console.log('User role for redirection:', userRole);
-            
-            if (userRole === 'instructor' || userRole === 'teacher') {
-                window.location.href = '/dashboard/teacher';
-            } else if (userRole === 'admin') {
-                window.location.href = '/dashboard/admin';
-            } else {
-                window.location.href = '/dashboard/student';
-            }
-            
-        } catch (error) {
-            console.error('Login error:', error);
-            loginError.textContent = error.message || 'Login failed';
-            loginError.classList.remove('d-none');
-        }
-    });
-});
+            // Login form submission
+            loginForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Hide any previous error messages
+                loginError.classList.add('d-none');
+                
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                
+                // Store email for verification
+                userEmail = email;
+                
+                try {
+                    // Show loader
+                    BassacLoader.show('Logging in...');
+                    
+                    const response = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ email, password }),
+                        credentials: 'include'
+                    });
+                    
+                    // Try to get the response body
+                    let data;
+                    try {
+                        data = await response.json();
+                    } catch (jsonError) {
+                        console.error('Error parsing JSON response:', jsonError);
+                        data = { message: 'Could not parse server response' };
+                    }
+                    
+                    // Check if verification is needed
+                    if (response.status === 401 && data.needsVerification) {
+                        // Hide loader
+                        BassacLoader.hide();
+                        
+                        // Show verification notice
+                        loginForm.style.display = 'none';
+                        verificationNotice.style.display = 'block';
+                        return;
+                    }
+                    
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Login failed');
+                    }
+                    
+                    // Success - redirect based on user role
+                    const userRole = data.user.role.toLowerCase();
+                    let redirectUrl = '/dashboard/student';
+                    
+                    if (userRole === 'instructor' || userRole === 'teacher') {
+                        redirectUrl = '/dashboard/teacher';
+                    } else if (userRole === 'admin') {
+                        redirectUrl = '/dashboard/admin';
+                    }
+                    
+                    BassacLoader.showSuccessThenRedirect('Login successful!', redirectUrl);
+                    
+                } catch (error) {
+                    // Hide loader
+                    BassacLoader.hide();
+                    
+                    // Show error
+                    loginError.textContent = error.message || 'Login failed';
+                    loginError.classList.remove('d-none');
+                    
+                    // Shake animation
+                    document.querySelector('.auth-container').classList.add('shake');
+                    setTimeout(() => {
+                        document.querySelector('.auth-container').classList.remove('shake');
+                    }, 820);
+                }
+            });
+        });
     </script>
 </body>
 

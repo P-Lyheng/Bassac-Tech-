@@ -3,194 +3,727 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bassac Academy | Learn Together</title>
-    <link rel="stylesheet" href="./public/css/style.css">
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Modern Platform</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --secondary: #f43f5e;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --gray: #cbd5e1;
+            --success: #10b981;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .logo-icon {
+            width: 30px;
+            height: 30px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+        
+        .btn {
+            padding: 0.6rem 1.5rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .btn-outline:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            opacity: 0.9;
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--dark);
+        }
+        
+        /* Landing Page */
+        .landing-page, .home-page {
+            min-height: calc(100vh - 73px);
+        }
+        
+        .hero {
+            display: flex;
+            padding: 4rem 0;
+            align-items: center;
+            gap: 2rem;
+        }
+        
+        .hero-content {
+            flex: 1;
+        }
+        
+        .hero-image {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .hero-image img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+        
+        .hero p {
+            font-size: 1.125rem;
+            color: #475569;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .features {
+            padding: 4rem 0;
+            background-color: white;
+        }
+        
+        .features h2 {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .feature-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 0.375rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            background-color: #eff6ff;
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+        
+        .feature-card h3 {
+            margin-bottom: 0.75rem;
+            font-size: 1.25rem;
+        }
+        
+        .feature-card p {
+            color: #64748b;
+            line-height: 1.6;
+        }
+        
+        /* Forms */
+        .auth-section {
+            padding: 4rem 0;
+            background-color: #f1f5f9;
+        }
+        
+        .auth-container {
+            max-width: 400px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--gray);
+        }
+        
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 0.75rem;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .auth-tab.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+        
+        .auth-form h2 {
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #475569;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--gray);
+            border-radius: 0.375rem;
+            font-size: 1rem;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        
+        .form-submit {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1rem;
+        }
+        
+        /* Home Page */
+        .welcome-banner {
+            background-color: var(--primary);
+            color: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .dashboard-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .dashboard-card h3 {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .success-badge {
+            background-color: #dcfce7;
+            color: var(--success);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .home-page .btn-logout {
+            margin-top: 2rem;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        footer {
+            background-color: var(--dark);
+            color: white;
+            padding: 2rem 0;
+            margin-top: 4rem;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .social-links a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+        
+        .social-links a:hover {
+            opacity: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .hero {
+                flex-direction: column-reverse;
+                padding: 2rem 0;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .nav-links {
+                position: fixed;
+                top: 73px;
+                left: 0;
+                right: 0;
+                background-color: white;
+                flex-direction: column;
+                padding: 2rem;
+                transform: translateY(-150%);
+                transition: transform 0.3s;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            }
+            
+            .nav-links.active {
+                transform: translateY(0);
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg">
+    <header>
         <div class="container">
-            <a class="navbar-brand" href="/">
-                <div class="logo">Bassac Academy</div>
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#features">Features</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#how-it-works">How It Works</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/auth/login" id="login-btn">Log In</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link btn btn-primary sign-up-btn" href="/auth/register">Sign Up</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-6">
-                    <h1>Learn Interactively with Bassac Academy</h1>
-                    <p class="lead">Join live classes with expert teachers or create your own educational experience. Real-time interaction in a secure learning environment.</p>
-                    <div class="hero-buttons">
-                        <a href="/auth/register" class="btn btn-primary btn-lg">Get Started</a>
-                        <a href="#how-it-works" class="btn btn-outline-primary btn-lg">Learn More</a>
-                    </div>
+            <nav>
+                <div class="logo">
+                    <div class="logo-icon">P</div>
+                    Platform
                 </div>
-                <div class="col-lg-6">
+                <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+                <div class="nav-links" id="navLinks">
+                    <a href="#">Features</a>
+                    <a href="#">Pricing</a>
+                    <a href="#">About</a>
+                    <button class="btn btn-outline auth-btn" id="loginBtn">Log In</button>
+                    <button class="btn btn-primary auth-btn" id="signupBtn">Sign Up</button>
+                    <button class="btn btn-danger hidden" id="logoutBtn">Log Out</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Landing Page Content -->
+    <div class="landing-page" id="landingPage">
+        <section class="hero">
+            <div class="container">
+                <div class="hero">
+                    <div class="hero-content">
+                        <h1>Create, Connect, and Collaborate</h1>
+                        <p>Join thousands of users who are already experiencing the future of collaboration. Our platform provides the tools you need to bring your ideas to life.</p>
+                        <button class="btn btn-primary" id="getStartedBtn">Get Started</button>
+                    </div>
                     <div class="hero-image">
-                        <img src="./public/img/hero-illustration.svg" alt="Online learning illustration">
+                        <img src="/api/placeholder/600/400" alt="Platform Preview">
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Features Section -->
-    <section id="features" class="features">
-        <div class="container">
-            <div class="section-header text-center">
-                <h2>Platform Features</h2>
-                <p>Everything you need for interactive online learning</p>
-            </div>
-            <div class="row">
-                <div class="col-md-4">
+        <section class="features">
+            <div class="container">
+                <h2>Why Choose Our Platform</h2>
+                <div class="features-grid">
                     <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-video"></i>
-                        </div>
-                        <h3>Live Video Classes</h3>
-                        <p>High-quality, secure video calls designed specifically for educational purposes.</p>
+                        <div class="feature-icon">🚀</div>
+                        <h3>Lightning Fast</h3>
+                        <p>Our platform is optimized for speed, ensuring that you can work efficiently without any delays.</p>
                     </div>
-                </div>
-                <div class="col-md-4">
                     <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-lock"></i>
-                        </div>
-                        <h3>Dual Security</h3>
-                        <p>Two-tier authentication system ensures only authorized students access your classes.</p>
+                        <div class="feature-icon">🔒</div>
+                        <h3>Secure & Private</h3>
+                        <p>Your data is protected with enterprise-grade security. We prioritize your privacy above all else.</p>
                     </div>
-                </div>
-                <div class="col-md-4">
                     <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-users"></i>
+                        <div class="feature-icon">💼</div>
+                        <h3>Professional Tools</h3>
+                        <p>Access a suite of professional tools designed to elevate your work to the next level.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="auth-section" id="authSection">
+            <div class="container">
+                <div class="auth-container">
+                    <div class="auth-tabs">
+                        <div class="auth-tab active" id="loginTab">Login</div>
+                        <div class="auth-tab" id="registerTab">Register</div>
+                    </div>
+                    
+                    <!-- Login Form -->
+                    <form class="auth-form" id="loginForm">
+                        <h2>Welcome Back</h2>
+                        <div class="form-group">
+                            <label for="loginEmail">Email</label>
+                            <input type="email" class="form-control" id="loginEmail" placeholder="your@email.com" required>
                         </div>
-                        <h3>Teacher & Student Modes</h3>
-                        <p>Switch between teaching and learning with our flexible role system.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- How It Works Section -->
-    <section id="how-it-works" class="how-it-works">
-        <div class="container">
-            <div class="section-header text-center">
-                <h2>How Bassac Academy Works</h2>
-                <p>Simple and effective online learning in just a few steps</p>
-            </div>
-            <div class="steps">
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                        <h3>Create an Account</h3>
-                        <p>Sign up with your email and choose your role (teacher or student).</p>
-                    </div>
-                </div>
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                        <h3>Create or Find Classes</h3>
-                        <p>Teachers create classes with unique access codes. Students browse and find classes to join.</p>
-                    </div>
-                </div>
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <h3>Enter Secure Class Room</h3>
-                        <p>Use your class-specific password to enter the live session.</p>
-                    </div>
-                </div>
-                <div class="step">
-                    <div class="step-number">4</div>
-                    <div class="step-content">
-                        <h3>Learn Together</h3>
-                        <p>Enjoy interactive video learning with teachers and fellow students.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="cta-section">
-        <div class="container">
-            <div class="cta-content text-center">
-                <h2>Ready to Transform Your Learning Experience?</h2>
-                <p>Join Bassac Academy today and discover a new way to teach and learn online.</p>
-                <a href="/auth/register" class="btn btn-primary btn-lg">Get Started Now</a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="footer-logo">Bassac Academy</div>
-                    <p>Empowering education through interactive online learning.</p>
-                </div>
-                <div class="col-md-2">
-                    <h5>Platform</h5>
-                    <ul class="footer-links">
-                        <li><a href="#features">Features</a></li>
-                        <li><a href="#how-it-works">How It Works</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-2">
-                    <h5>Company</h5>
-                    <ul class="footer-links">
-                        <li><a href="#">About Us</a></li>
-                        <li><a href="#">Contact</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-4">
-                    <h5>Stay Updated</h5>
-                    <p>Subscribe to our newsletter for the latest updates.</p>
-                    <form class="newsletter-form">
-                        <div class="input-group">
-                            <input type="email" class="form-control" placeholder="Enter your email">
-                            <button class="btn btn-primary" type="submit">Subscribe</button>
+                        <div class="form-group">
+                            <label for="loginPassword">Password</label>
+                            <input type="password" class="form-control" id="loginPassword" placeholder="••••••••" required>
                         </div>
+                        <button type="submit" class="btn btn-primary form-submit">Log In</button>
+                    </form>
+                    
+                    <!-- Register Form -->
+                    <form class="auth-form hidden" id="registerForm">
+                        <h2>Create Account</h2>
+                        <div class="form-group">
+                            <label for="registerName">Full Name</label>
+                            <input type="text" class="form-control" id="registerName" placeholder="John Doe" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="registerEmail">Email</label>
+                            <input type="email" class="form-control" id="registerEmail" placeholder="your@email.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="registerPassword">Password</label>
+                            <input type="password" class="form-control" id="registerPassword" placeholder="••••••••" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary form-submit">Sign Up</button>
                     </form>
                 </div>
             </div>
-            <div class="footer-bottom">
-                <p>&copy; 2025 Bassac Academy. All rights reserved.</p>
+        </section>
+    </div>
+
+    <!-- Home Page Content (Hidden by default) -->
+    <div class="home-page hidden" id="homePage">
+        <div class="container">
+            <div class="welcome-banner">
+                <h2>Welcome, <span id="usernameDisplay">User</span>!</h2>
+                <p>We're glad to have you back. Here's what's new on your dashboard today.</p>
+            </div>
+            
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <h3>Your Profile <span class="success-badge">Active</span></h3>
+                    <p>Your profile is complete and visible to the community.</p>
+                </div>
+                <div class="dashboard-card">
+                    <h3>Recent Activity</h3>
+                    <p>You have no new notifications since your last login.</p>
+                </div>
+                <div class="dashboard-card">
+                    <h3>Projects</h3>
+                    <p>You haven't created any projects yet. Start by clicking the button below.</p>
+                    <button class="btn btn-primary">Create Project</button>
+                </div>
+            </div>
+            
+            <div class="dashboard-card">
+                <h3>Quick Actions</h3>
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <button class="btn btn-outline">Edit Profile</button>
+                    <button class="btn btn-outline">Invite Friends</button>
+                    <button class="btn btn-outline">Settings</button>
+                </div>
+            </div>
+            
+            <button class="btn btn-danger btn-logout" id="dashboardLogoutBtn">Log Out</button>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div>© 2025 Platform. All rights reserved.</div>
+                <div class="social-links">
+                    <a href="#">Twitter</a>
+                    <a href="#">LinkedIn</a>
+                    <a href="#">GitHub</a>
+                </div>
             </div>
         </div>
     </footer>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="./public/js/main.js"></script>
+    <script>
+        // DOM Elements
+        const landingPage = document.getElementById('landingPage');
+        const homePage = document.getElementById('homePage');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const loginTab = document.getElementById('loginTab');
+        const registerTab = document.getElementById('registerTab');
+        const usernameDisplay = document.getElementById('usernameDisplay');
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const navLinks = document.getElementById('navLinks');
+        const loginBtn = document.getElementById('loginBtn');
+        const signupBtn = document.getElementById('signupBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const getStartedBtn = document.getElementById('getStartedBtn');
+        const dashboardLogoutBtn = document.getElementById('dashboardLogoutBtn');
+        const authBtns = document.querySelectorAll('.auth-btn');
+        
+        // Check for auth token on page load
+        function checkAuthentication() {
+            const token = getCookie('authToken');
+            if (token) {
+                // User is authenticated
+                landingPage.classList.add('hidden');
+                homePage.classList.remove('hidden');
+                
+                // Update nav menu
+                authBtns.forEach(btn => btn.classList.add('hidden'));
+                logoutBtn.classList.remove('hidden');
+                
+                // Set username
+                const username = getCookie('username') || 'User';
+                usernameDisplay.textContent = username;
+            } else {
+                // User is not authenticated
+                landingPage.classList.remove('hidden');
+                homePage.classList.add('hidden');
+                
+                // Update nav menu
+                authBtns.forEach(btn => btn.classList.remove('hidden'));
+                logoutBtn.classList.add('hidden');
+            }
+        }
+        
+        // Helper function to get cookie value
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return null;
+        }
+        
+        // Set a cookie with expiry
+        function setCookie(name, value, days) {
+            let expires = '';
+            if (days) {
+                const date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                expires = `; expires=${date.toUTCString()}`;
+            }
+            document.cookie = `${name}=${value}${expires}; path=/`;
+        }
+        
+        // Login form submission
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            // In a real app, you would send these credentials to your backend
+            // For demo purposes, we'll simulate a successful login
+            console.log('Login attempt with:', email);
+            
+            // Simulate successful login (replace with actual API call)
+            setCookie('authToken', 'demo-token-12345', 7);
+            setCookie('username', email.split('@')[0], 7);
+            
+            // Redirect to home page
+            checkAuthentication();
+        });
+        
+        // Register form submission
+        registerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            
+            // In a real app, you would send this data to your backend
+            console.log('Registration with:', name, email);
+            
+            // Simulate successful registration and login
+            setCookie('authToken', 'demo-token-12345', 7);
+            setCookie('username', name, 7);
+            
+            // Redirect to home page
+            checkAuthentication();
+        });
+        
+        // Tab switching
+        loginTab.addEventListener('click', function() {
+            loginTab.classList.add('active');
+            registerTab.classList.remove('active');
+            loginForm.classList.remove('hidden');
+            registerForm.classList.add('hidden');
+        });
+        
+        registerTab.addEventListener('click', function() {
+            registerTab.classList.add('active');
+            loginTab.classList.remove('active');
+            registerForm.classList.remove('hidden');
+            loginForm.classList.add('hidden');
+        });
+        
+        // Mobile menu toggle
+        mobileMenuBtn.addEventListener('click', function() {
+            navLinks.classList.toggle('active');
+        });
+        
+        // Get Started button scrolls to auth section
+        getStartedBtn.addEventListener('click', function() {
+            document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' });
+            // Show register form
+            registerTab.click();
+        });
+        
+        // Log out functionality
+        function handleLogout() {
+            // Delete auth cookies
+            document.cookie = 'authToken=; Max-Age=0; path=/;';
+            document.cookie = 'username=; Max-Age=0; path=/;';
+            
+            // Redirect to landing page
+            checkAuthentication();
+        }
+        
+        logoutBtn.addEventListener('click', handleLogout);
+        dashboardLogoutBtn.addEventListener('click', handleLogout);
+        
+        // Quick access to auth section
+        loginBtn.addEventListener('click', function() {
+            document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' });
+            loginTab.click();
+        });
+        
+        signupBtn.addEventListener('click', function() {
+            document.getElementById('authSection').scrollIntoView({ behavior: 'smooth' });
+            registerTab.click();
+        });
+        
+        // Initialize page
+        checkAuthentication();
+    </script>
 </body>
 </html>

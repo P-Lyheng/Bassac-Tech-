@@ -1,27 +1,31 @@
-/**
- * Student Dashboard JavaScript
- * Handles functionality for the student dashboard page
- */
+// ../js/student-dashboard.js
 
 document.addEventListener('DOMContentLoaded', async function() {
-    // Check authentication
-    const user = await requireAuth();
-    
-    // Redirect if not student
-    if (!user || user.role !== 'student') {
-        window.location.href = '/login.html';
-        return;
+    try {
+        // Check authentication
+        const user = await requireAuth();
+        
+        // If user is not a student, redirect to appropriate dashboard
+        if (user.role !== 'student') {
+            window.location.href = user.role === 'teacher' ? '/teacher-dashboard' : '/login';
+            return;
+        }
+        
+        // Update user info in navbar and welcome message
+        document.getElementById('username-display').textContent = user.username;
+        document.getElementById('student-name').textContent = user.username;
+        
+        // Initialize dashboard
+        initializeDashboard();
+        
+        // Set up event listeners
+        setupEventListeners();
+        
+    } catch (error) {
+        console.error('Dashboard initialization error:', error);
+        // Show error notification
+        showNotification('Error', 'Failed to load dashboard. Please refresh the page.', 'danger');
     }
-    
-    // Update user info in navbar
-    document.getElementById('username-display').textContent = user.username;
-    document.getElementById('student-name').textContent = user.username;
-    
-    // Initialize dashboard
-    initializeDashboard();
-    
-    // Set up event listeners
-    setupEventListeners();
 });
 
 /**
@@ -29,22 +33,17 @@ document.addEventListener('DOMContentLoaded', async function() {
  */
 async function initializeDashboard() {
     try {
-        // Load stats
-        await loadStats();
-        
-        // Load active sessions
-        await loadActiveSessions();
-        
-        // Load upcoming sessions
-        await loadUpcomingSessions();
-        
-        // Load enrolled classes
-        await loadEnrolledClasses();
-        
-        // Load recent learning materials
-        await loadRecentMaterials();
+        // Load all dashboard data in parallel
+        await Promise.all([
+            loadStats(),
+            loadActiveSessions(),
+            loadUpcomingSessions(),
+            loadEnrolledClasses(),
+            loadRecentMaterials()
+        ]);
     } catch (error) {
         console.error('Error initializing dashboard:', error);
+        showNotification('Error', 'Some dashboard components failed to load.', 'warning');
     }
 }
 
@@ -69,13 +68,13 @@ async function loadStats() {
         const stats = await response.json();
         
         // Update stats cards
-        document.getElementById('classes-count').textContent = stats.enrolledClassesCount || 0;
-        document.getElementById('completed-count').textContent = stats.completedSessionsCount || 0;
-        document.getElementById('upcoming-count').textContent = stats.upcomingSessionsCount || 0;
+        document.getElementById('classes-count').textContent = stats.classesCount||0;
+        document.getElementById('active-sessions-count').textContent = stats.activeSessionsCount || 0;
         document.getElementById('materials-count').textContent = stats.materialsCount || 0;
+        console.log(stats);
     } catch (error) {
         console.error('Error loading stats:', error);
-        // Show fallback stats (don't show error to user)
+        // Don't show visible error for stats, just log it
     }
 }
 
@@ -121,61 +120,64 @@ async function loadActiveSessions() {
             const startTime = new Date(session.actual_start || session.scheduled_start);
             const formattedStart = startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
-            // Create card
-            const col = document.createElement('div');
-            col.className = 'col-md-6 col-lg-4';
+            const sessionCard = document.createElement('div');
+            sessionCard.className = 'card session-card active-session mb-3';
             
-            col.innerHTML = `
-                <div class="card h-100 active-session-card">
-                    <div class="card-body session-card-body">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <h5 class="card-title">${session.title || session.session_name}</h5>
-                            <span class="badge bg-success">Active</span>
+            sessionCard.innerHTML = `
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5 class="card-title">${session.title}</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">${session.class_name}</h6>
+                            <p class="card-text small">
+                                <i class="fas fa-user-tie me-1"></i> Instructor: ${session.instructor_name || 'Unknown'}
+                            </p>
+                            <p class="card-text small">
+                                <i class="fas fa-clock me-1"></i> Started at ${formattedStart}
+                            </p>
+                            <p class="card-text small">
+                                <i class="fas fa-users me-1"></i> ${session.participants_count || 0} participants
+                            </p>
                         </div>
-                        <h6 class="card-subtitle mb-2 text-muted">${session.class_name}</h6>
-                        <p class="card-text small">Started at ${formattedStart}</p>
-                        <p class="card-text small">
-                            <i class="fas fa-chalkboard-teacher me-1"></i> 
-                            <span>${session.instructor_name || 'Instructor'}</span>
-                        </p>
-                        <p class="card-text">
-                            <i class="fas fa-users me-1"></i> 
-                            <span>${session.participants_count || 0}</span> participants
-                        </p>
-                        <div class="session-card-actions d-grid gap-2">
-                            <button class="btn btn-primary join-session-btn" 
-                                data-id="${session.session_id}" 
-                                data-room="${session.room_id}">
-                                <i class="fas fa-video me-1"></i> Join Session
-                            </button>
-                            <button class="btn btn-outline-secondary view-session-details-btn" 
-                                data-id="${session.session_id}">
-                                <i class="fas fa-info-circle me-1"></i> View Details
-                            </button>
+                        <div>
+                            <span class="badge bg-success mb-2">Live Now</span>
                         </div>
                     </div>
+                    <button class="btn btn-primary join-session-btn mt-2" 
+                        data-id="${session.session_id}" 
+                        data-room="${session.room_id}">
+                        <i class="fas fa-video me-1"></i> Join Session
+                    </button>
                 </div>
             `;
             
-            container.appendChild(col);
+            container.appendChild(sessionCard);
         });
         
         // Add event listeners
         document.querySelectorAll('.join-session-btn').forEach(btn => {
-            btn.addEventListener('click', joinSession);
-        });
-        
-        document.querySelectorAll('.view-session-details-btn').forEach(btn => {
-            btn.addEventListener('click', viewSessionDetails);
+            btn.addEventListener('click', function() {
+                const sessionId = this.getAttribute('data-id');
+                const roomId = this.getAttribute('data-room');
+                joinSession(sessionId, roomId);
+            });
         });
     } catch (error) {
         console.error('Error loading active sessions:', error);
         document.getElementById('active-sessions-loading').classList.add('d-none');
         document.getElementById('active-sessions-empty').classList.remove('d-none');
         document.getElementById('active-sessions-empty').innerHTML = `
-            <i class="fas fa-exclamation-circle fa-2x text-danger mb-3"></i>
+            <div class="text-danger mb-3">
+                <i class="fas fa-exclamation-circle fa-2x"></i>
+            </div>
             <p>Error loading active sessions. Please try again later.</p>
+            <button class="btn btn-sm btn-outline-primary mt-2" id="retry-active-sessions">
+                <i class="fas fa-sync-alt me-1"></i> Retry
+            </button>
         `;
+        
+        // Add retry button event listener
+        document.getElementById('retry-active-sessions')?.addEventListener('click', loadActiveSessions);
     }
 }
 
@@ -186,7 +188,7 @@ async function loadUpcomingSessions() {
     try {
         // Show loading
         document.getElementById('upcoming-sessions-loading').classList.remove('d-none');
-        document.getElementById('upcoming-sessions-table-body').innerHTML = '';
+        document.getElementById('upcoming-sessions-container').innerHTML = '';
         document.getElementById('upcoming-sessions-empty').classList.add('d-none');
         
         const response = await fetch('/api/student/sessions/upcoming', {
@@ -213,8 +215,8 @@ async function loadUpcomingSessions() {
             return;
         }
         
-        // Populate upcoming sessions table
-        const tableBody = document.getElementById('upcoming-sessions-table-body');
+        // Populate upcoming sessions
+        const container = document.getElementById('upcoming-sessions-container');
         
         sessions.forEach(session => {
             // Format dates
@@ -222,35 +224,74 @@ async function loadUpcomingSessions() {
             const formattedDate = startDate.toLocaleDateString();
             const formattedTime = startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             
-            const row = document.createElement('tr');
+            const sessionCard = document.createElement('div');
+            sessionCard.className = 'card session-card scheduled-session mb-3';
             
-            row.innerHTML = `
-                <td>${session.title || session.session_name}</td>
-                <td>${session.class_name}</td>
-                <td>${formattedDate} ${formattedTime}</td>
-                <td>${session.instructor_name || 'Instructor'}</td>
-                <td>
-                    <button class="btn btn-sm btn-outline-secondary view-session-details-btn" data-id="${session.session_id}">
-                        <i class="fas fa-info-circle me-1"></i> Details
-                    </button>
-                </td>
+            sessionCard.innerHTML = `
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5 class="card-title">${session.title}</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">${session.class_name}</h6>
+                            <p class="card-text small">
+                                <i class="fas fa-user-tie me-1"></i> Instructor: ${session.instructor_name || 'Unknown'}
+                            </p>
+                            <p class="card-text small">
+                                <i class="fas fa-calendar-alt me-1"></i> ${formattedDate} at ${formattedTime}
+                            </p>
+                        </div>
+                        <div>
+                            <span class="badge bg-primary mb-2">Upcoming</span>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <div>
+                            <button class="btn btn-sm btn-outline-secondary add-to-calendar-btn" 
+                                data-id="${session.session_id}" 
+                                data-title="${session.title}"
+                                data-start="${session.scheduled_start}">
+                                <i class="fas fa-calendar-plus me-1"></i> Add to Calendar
+                            </button>
+                        </div>
+                        <div>
+                            <span class="text-muted session-time">
+                                ${getTimeUntil(startDate)}
+                            </span>
+                        </div>
+                    </div>
+                </div>
             `;
             
-            tableBody.appendChild(row);
+            container.appendChild(sessionCard);
         });
         
         // Add event listeners
-        document.querySelectorAll('.view-session-details-btn').forEach(btn => {
-            btn.addEventListener('click', viewSessionDetails);
+        document.querySelectorAll('.add-to-calendar-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const sessionId = this.getAttribute('data-id');
+                const title = this.getAttribute('data-title');
+                const startDate = new Date(this.getAttribute('data-start'));
+                
+                addToCalendar(title, startDate);
+            });
         });
     } catch (error) {
         console.error('Error loading upcoming sessions:', error);
         document.getElementById('upcoming-sessions-loading').classList.add('d-none');
         document.getElementById('upcoming-sessions-empty').classList.remove('d-none');
         document.getElementById('upcoming-sessions-empty').innerHTML = `
-            <i class="fas fa-exclamation-circle text-danger me-2"></i>
-            Error loading upcoming sessions. Please try again later.
+            <div class="text-danger mb-3">
+                <i class="fas fa-exclamation-circle fa-2x"></i>
+            </div>
+            <p>Error loading upcoming sessions. Please try again later.</p>
+            <button class="btn btn-sm btn-outline-primary mt-2" id="retry-upcoming-sessions">
+                <i class="fas fa-sync-alt me-1"></i> Retry
+            </button>
         `;
+        
+        // Add retry button event listener
+        document.getElementById('retry-upcoming-sessions')?.addEventListener('click', loadUpcomingSessions);
     }
 }
 
@@ -260,9 +301,9 @@ async function loadUpcomingSessions() {
 async function loadEnrolledClasses() {
     try {
         // Show loading
-        document.getElementById('enrolled-classes-loading').classList.remove('d-none');
-        document.getElementById('enrolled-classes-container').innerHTML = '';
-        document.getElementById('enrolled-classes-empty').classList.add('d-none');
+        document.getElementById('classes-loading').classList.remove('d-none');
+        document.getElementById('classes-container').innerHTML = '';
+        document.getElementById('classes-empty').classList.add('d-none');
         
         const response = await fetch('/api/student/classes/enrolled', {
             method: 'GET',
@@ -274,60 +315,59 @@ async function loadEnrolledClasses() {
         });
         
         if (!response.ok) {
-            throw new Error('Failed to load enrolled classes');
+            throw new Error('Failed to load classes');
         }
         
         const classes = await response.json();
         
         // Hide loading
-        document.getElementById('enrolled-classes-loading').classList.add('d-none');
+        document.getElementById('classes-loading').classList.add('d-none');
         
         // Check if no classes
         if (classes.length === 0) {
-            document.getElementById('enrolled-classes-empty').classList.remove('d-none');
+            document.getElementById('classes-empty').classList.remove('d-none');
             return;
         }
         
-        // Get only the most recent classes (up to 6)
-        const recentClasses = classes.slice(0, 6);
+        // Get a subset of classes (up to 4)
+        const recentClasses = classes.slice(0, 4);
         
-        // Populate enrolled classes
-        const container = document.getElementById('enrolled-classes-container');
+        // Populate classes
+        const container = document.getElementById('classes-container');
         
         recentClasses.forEach(classItem => {
             const col = document.createElement('div');
-            col.className = 'col-md-6 col-lg-4';
-            
-            // Set card status based on enrollment
-            let statusBadge = '';
-            if (classItem.enrollment_status === 'approved') {
-                statusBadge = '<span class="badge bg-success">Enrolled</span>';
-            } else if (classItem.enrollment_status === 'pending') {
-                statusBadge = '<span class="badge bg-warning">Pending</span>';
-            } else {
-                statusBadge = '<span class="badge bg-secondary">Inactive</span>';
-            }
+            col.className = 'col';
             
             col.innerHTML = `
-                <div class="card h-100 class-card">
+                <div class="class-card">
                     <div class="card-body">
-                        <h5 class="card-title">${classItem.title || classItem.class_name}</h5>
+                        <span class="class-badge badge ${classItem.is_active ? 'bg-success' : 'bg-secondary'}">
+                            ${classItem.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                        <h5 class="card-title">${classItem.class_name}</h5>
                         <p class="card-text small">${classItem.description || 'No description provided'}</p>
-                        <p class="card-text small">
-                            <i class="fas fa-chalkboard-teacher me-1"></i> 
-                            ${classItem.instructor_name || 'Instructor'}
-                        </p>
                         <div class="d-flex justify-content-between align-items-center mt-3">
-                            ${statusBadge}
+                            <span class="text-muted small">
+                                <i class="fas fa-user-tie me-1"></i> ${classItem.instructor_name || 'Unknown instructor'}
+                            </span>
                             <span class="text-muted small">
                                 <i class="fas fa-users me-1"></i> ${classItem.enrolled_count || 0} students
                             </span>
                         </div>
                     </div>
                     <div class="card-footer bg-transparent">
-                        <a href="class-details.html?id=${classItem.class_id}" class="btn btn-sm btn-outline-primary w-100">
-                            <i class="fas fa-info-circle me-1"></i> View Class
-                        </a>
+                        <div class="d-flex justify-content-between">
+                            <span class="badge ${classItem.upcoming_sessions > 0 ? 'bg-primary' : 'bg-secondary'}">
+                                <i class="fas fa-calendar-alt me-1"></i> ${classItem.upcoming_sessions} upcoming
+                            </span>
+                            <span class="badge bg-info">
+                                <i class="fas fa-file-alt me-1"></i> ${classItem.materials_count} materials
+                            </span>
+                            <a href="class-details?id=${classItem.class_id}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-info-circle me-1"></i> Details
+                            </a>
+                        </div>
                     </div>
                 </div>
             `;
@@ -335,24 +375,32 @@ async function loadEnrolledClasses() {
             container.appendChild(col);
         });
     } catch (error) {
-        console.error('Error loading enrolled classes:', error);
-        document.getElementById('enrolled-classes-loading').classList.add('d-none');
-        document.getElementById('enrolled-classes-empty').classList.remove('d-none');
-        document.getElementById('enrolled-classes-empty').innerHTML = `
-            <i class="fas fa-exclamation-circle text-danger me-2"></i>
-            Error loading classes. Please try again later.
+        console.error('Error loading classes:', error);
+        document.getElementById('classes-loading').classList.add('d-none');
+        document.getElementById('classes-empty').classList.remove('d-none');
+        document.getElementById('classes-empty').innerHTML = `
+            <div class="text-danger mb-3">
+                <i class="fas fa-exclamation-circle fa-2x"></i>
+            </div>
+            <p>Error loading classes. Please try again later.</p>
+            <button class="btn btn-sm btn-outline-primary mt-2" id="retry-classes">
+                <i class="fas fa-sync-alt me-1"></i> Retry
+            </button>
         `;
+        
+        // Add retry button event listener
+        document.getElementById('retry-classes')?.addEventListener('click', loadEnrolledClasses);
     }
 }
 
 /**
- * Load recent learning materials
+ * Load recent materials
  */
 async function loadRecentMaterials() {
     try {
         // Show loading
         document.getElementById('materials-loading').classList.remove('d-none');
-        document.getElementById('materials-table-body').innerHTML = '';
+        document.getElementById('materials-container').innerHTML = '';
         document.getElementById('materials-empty').classList.add('d-none');
         
         const response = await fetch('/api/student/materials', {
@@ -365,7 +413,7 @@ async function loadRecentMaterials() {
         });
         
         if (!response.ok) {
-            throw new Error('Failed to load learning materials');
+            throw new Error('Failed to load materials');
         }
         
         const materials = await response.json();
@@ -379,71 +427,146 @@ async function loadRecentMaterials() {
             return;
         }
         
-        // Show only the 5 most recent materials
+        // Get recent materials (up to 5)
         const recentMaterials = materials.slice(0, 5);
         
-        // Populate materials table
-        const tableBody = document.getElementById('materials-table-body');
+        // Populate materials
+        const container = document.getElementById('materials-container');
         
         recentMaterials.forEach(material => {
             // Format date
             const uploadDate = new Date(material.upload_date);
             const formattedDate = uploadDate.toLocaleDateString();
             
-            const row = document.createElement('tr');
+            // Get icon based on file type
+            let fileIcon = 'file-alt';
+            if (material.file_type === 'pdf') fileIcon = 'file-pdf';
+            else if (material.file_type === 'docx' || material.file_type === 'doc') fileIcon = 'file-word';
+            else if (material.file_type === 'xlsx' || material.file_type === 'xls') fileIcon = 'file-excel';
+            else if (material.file_type === 'pptx' || material.file_type === 'ppt') fileIcon = 'file-powerpoint';
+            else if (material.file_type === 'zip' || material.file_type === 'rar') fileIcon = 'file-archive';
             
-            row.innerHTML = `
-                <td>${material.title}</td>
-                <td>${material.class_name}</td>
-                <td>${formattedDate}</td>
-                <td>
-                    <a href="/api/materials/${material.material_id}/download" class="btn btn-sm btn-success" target="_blank">
-                        <i class="fas fa-download me-1"></i> Download
-                    </a>
-                </td>
+            const materialItem = document.createElement('div');
+            materialItem.className = 'material-item';
+            
+            materialItem.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="fas fa-${fileIcon} fa-2x text-primary"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">${material.title}</h6>
+                            <small class="text-muted">${material.class_name}</small>
+                            <div class="d-flex align-items-center mt-1">
+                                <small class="text-muted me-3">
+                                    <i class="fas fa-calendar-alt me-1"></i> ${formattedDate}
+                                </small>
+                                <small class="text-muted">
+                                    <i class="fas fa-weight-hanging me-1"></i> ${formatFileSize(material.file_size)}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <a href="/api/student/materials/${material.material_id}/download" class="btn btn-sm btn-outline-primary" download>
+                            <i class="fas fa-download"></i>
+                        </a>
+                    </div>
+                </div>
             `;
             
-            tableBody.appendChild(row);
+            container.appendChild(materialItem);
         });
     } catch (error) {
-        console.error('Error loading learning materials:', error);
+        console.error('Error loading materials:', error);
         document.getElementById('materials-loading').classList.add('d-none');
         document.getElementById('materials-empty').classList.remove('d-none');
         document.getElementById('materials-empty').innerHTML = `
-            <i class="fas fa-exclamation-circle text-danger me-2"></i>
-            Error loading materials. Please try again later.
+            <div class="text-danger mb-3">
+                <i class="fas fa-exclamation-circle fa-2x"></i>
+            </div>
+            <p>Error loading materials. Please try again later.</p>
+            <button class="btn btn-sm btn-outline-primary mt-2" id="retry-materials">
+                <i class="fas fa-sync-alt me-1"></i> Retry
+            </button>
         `;
+        
+        // Add retry button event listener
+        document.getElementById('retry-materials')?.addEventListener('click', loadRecentMaterials);
     }
 }
 
 /**
- * Set up all event listeners
+ * Set up event listeners
  */
 function setupEventListeners() {
     // Logout button
     document.getElementById('logout-btn').addEventListener('click', logout);
     
     // Refresh buttons
-    document.getElementById('refresh-active-sessions').addEventListener('click', function() {
-        loadActiveSessions();
-    });
+    document.getElementById('refresh-active-sessions').addEventListener('click', loadActiveSessions);
+    document.getElementById('refresh-upcoming-sessions').addEventListener('click', loadUpcomingSessions);
     
     // Join class button
     document.getElementById('join-class-btn').addEventListener('click', joinClass);
 }
 
 /**
- * Join a class with class code and password
+ * Join an active session
+ */
+function joinSession(sessionId, roomId) {
+    // Mark attendance first
+    fetch(`/api/student/sessions/${sessionId}/attend`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${getToken()}`,
+            'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+    })
+    .then(response => {
+        // Navigate to video room regardless of attendance response
+        window.location.href = `/videoroom?session=${sessionId}&room=${roomId}`;
+    })
+    .catch(error => {
+        console.error('Error marking attendance:', error);
+        // Still navigate to video room even if marking attendance fails
+        window.location.href = `/videoroom?session=${sessionId}&room=${roomId}`;
+    });
+}
+
+/**
+ * Add a session to calendar
+ */
+function addToCalendar(title, startDate) {
+    // Default end time: 1 hour after start
+    const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+    
+    // Format dates for calendar
+    const formatDateForCalendar = (date) => {
+        return date.toISOString().replace(/-|:|\.\d+/g, '');
+    };
+    
+    const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${formatDateForCalendar(startDate)}/${formatDateForCalendar(endDate)}&details=${encodeURIComponent('Class session from Bassac Academy')}`;
+    
+    // Open calendar in new tab
+    window.open(calendarUrl, '_blank');
+    
+    // Show success notification
+    showNotification('Success', 'Event added to calendar', 'success');
+}
+
+/**
+ * Join a class
  */
 async function joinClass() {
     const classCode = document.getElementById('class-code').value;
     const classPassword = document.getElementById('class-password').value;
     const errorElement = document.getElementById('join-class-error');
-    const successElement = document.getElementById('join-class-success');
     
-    // Hide previous messages
+    // Hide previous errors
     errorElement.classList.add('d-none');
-    successElement.classList.add('d-none');
     
     // Validate form
     if (!classCode || !classPassword) {
@@ -451,6 +574,12 @@ async function joinClass() {
         errorElement.classList.remove('d-none');
         return;
     }
+    
+    // Show loading state
+    const joinButton = document.getElementById('join-class-btn');
+    const originalButtonText = joinButton.innerHTML;
+    joinButton.disabled = true;
+    joinButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Joining...';
     
     try {
         const response = await fetch('/api/student/classes/join', {
@@ -466,176 +595,136 @@ async function joinClass() {
             credentials: 'include'
         });
         
-        const data = await response.json();
+        // Reset button
+        joinButton.disabled = false;
+        joinButton.innerHTML = originalButtonText;
         
         if (!response.ok) {
+            const data = await response.json();
             throw new Error(data.message || 'Failed to join class');
         }
         
-        // Show success message
-        successElement.textContent = data.message;
-        successElement.classList.remove('d-none');
+        const data = await response.json();
         
-        // Disable the join button temporarily
-        const joinButton = document.getElementById('join-class-btn');
-        joinButton.disabled = true;
+        // Hide modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('joinClassModal'));
+        modal.hide();
         
-        // Reset form after 3 seconds and reload dashboard data
-        setTimeout(() => {
-            // Reset form
-            document.getElementById('join-class-form').reset();
-            successElement.classList.add('d-none');
-            joinButton.disabled = false;
-            
-            // Hide modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('joinClassModal'));
-            modal.hide();
-            
-            // Reload dashboard data
-            loadStats();
-            loadEnrolledClasses();
-            loadUpcomingSessions();
-            loadRecentMaterials();
-        }, 3000);
+        // Show success notification
+        showNotification('Success', 'Successfully joined the class!', 'success');
+        
+        // Reset form
+        document.getElementById('join-class-form').reset();
+        
+        // Reload dashboard data
+        await Promise.all([
+            loadStats(),
+            loadEnrolledClasses()
+        ]);
     } catch (error) {
         console.error('Error joining class:', error);
         errorElement.textContent = error.message;
         errorElement.classList.remove('d-none');
+        
+        // Reset button if not already reset
+        joinButton.disabled = false;
+        joinButton.innerHTML = originalButtonText;
     }
 }
 
 /**
- * Join a session
+ * Show notification toast
+ * @param {string} title - Notification title
+ * @param {string} message - Notification message
+ * @param {string} type - Notification type (success, info, warning, danger)
  */
-function joinSession(event) {
-    const sessionId = event.currentTarget.getAttribute('data-id');
-    const roomId = event.currentTarget.getAttribute('data-room');
+function showNotification(title, message, type = 'info') {
+    // Create toast container if it doesn't exist
+    let toastContainer = document.querySelector('.toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+        toastContainer.style.zIndex = '1050';
+        document.body.appendChild(toastContainer);
+    }
     
-    // Redirect to video room
-    joinVideoRoom(sessionId, roomId);
+    // Create toast element
+    const toastEl = document.createElement('div');
+    toastEl.className = `toast align-items-center text-white bg-${type} border-0`;
+    toastEl.setAttribute('role', 'alert');
+    toastEl.setAttribute('aria-live', 'assertive');
+    toastEl.setAttribute('aria-atomic', 'true');
+    
+    // Create toast content
+    toastEl.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                <strong>${title}</strong>: ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    `;
+    
+    // Add to container
+    toastContainer.appendChild(toastEl);
+    
+    // Initialize and show toast
+    const toast = new bootstrap.Toast(toastEl, {
+        autohide: true,
+        delay: 5000
+    });
+    toast.show();
+    
+    // Remove from DOM after hidden
+    toastEl.addEventListener('hidden.bs.toast', () => {
+        toastEl.remove();
+        
+        // Remove container if empty
+        if (toastContainer.children.length === 0) {
+            toastContainer.remove();
+        }
+    });
 }
 
 /**
- * Join a video room
+ * Format file size
  */
-function joinVideoRoom(sessionId, roomId) {
-    window.location.href = `/videoroom?session=${sessionId}&room=${roomId}&role=student`;
+function formatFileSize(bytes) {
+    if (!bytes) return 'Unknown size';
+    
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let size = parseInt(bytes, 10) || 0;
+    let unitIndex = 0;
+    
+    while (size >= 1024 && unitIndex < units.length - 1) {
+        size /= 1024;
+        unitIndex++;
+    }
+    
+    return `${size.toFixed(1)} ${units[unitIndex]}`;
 }
 
 /**
- * View session details
+ * Get time until date
  */
-async function viewSessionDetails(event) {
-    const sessionId = event.currentTarget.getAttribute('data-id');
+function getTimeUntil(date) {
+    const now = new Date();
+    const diff = date - now;
     
-    try {
-        // Fetch session details
-        const response = await fetch(`/api/sessions/${sessionId}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${getToken()}`,
-                'Content-Type': 'application/json'
-            },
-            credentials: 'include'
-        });
-        
-        if (!response.ok) {
-            throw new Error('Failed to load session details');
-        }
-        
-        const session = await response.json();
-        
-        // Populate modal
-        document.getElementById('session-details-title').textContent = session.title || session.session_name;
-        
-        // Format dates
-        const scheduledStartDate = new Date(session.scheduled_start);
-        const scheduledEndDate = new Date(session.scheduled_end);
-        const formattedStartDate = scheduledStartDate.toLocaleDateString();
-        const formattedStartTime = scheduledStartDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const formattedEndTime = scheduledEndDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        
-        // Check if session is active
-        const isActive = session.session_status === 'active';
-        const joinButton = document.getElementById('join-session-from-details-btn');
-        
-        if (isActive) {
-            joinButton.classList.remove('d-none');
-            joinButton.setAttribute('data-id', session.session_id);
-            joinButton.setAttribute('data-room', session.room_id);
-            
-            // Add event listener
-            joinButton.addEventListener('click', function() {
-                joinVideoRoom(session.session_id, session.room_id);
-            });
-        } else {
-            joinButton.classList.add('d-none');
-        }
-        
-        // Prepare content
-        let content = `
-            <div class="mb-3">
-                <h6>Class:</h6>
-                <p>${session.class_name}</p>
-            </div>
-            <div class="mb-3">
-                <h6>Description:</h6>
-                <p>${session.description || 'No description provided'}</p>
-            </div>
-            <div class="mb-3">
-                <h6>Scheduled Time:</h6>
-                <p>${formattedStartDate} (${formattedStartTime} - ${formattedEndTime})</p>
-            </div>
-            <div class="mb-3">
-                <h6>Instructor:</h6>
-                <p>${session.instructor_name || 'Not specified'}</p>
-            </div>
-            <div class="mb-3">
-                <h6>Status:</h6>
-                <p>
-                    <span class="badge ${isActive ? 'bg-success' : 'bg-primary'}">
-                        ${isActive ? 'Active' : 'Scheduled'}
-                    </span>
-                </p>
-            </div>
-        `;
-        
-        // If session is active, add more information
-        if (isActive) {
-            const actualStartDate = new Date(session.actual_start);
-            const formattedActualStart = actualStartDate.toLocaleString();
-            
-            content += `
-                <div class="mb-3">
-                    <h6>Started at:</h6>
-                    <p>${formattedActualStart}</p>
-                </div>
-                <div class="mb-3">
-                    <h6>Participants:</h6>
-                    <p>${session.participants_count || '0'} student(s) currently in session</p>
-                </div>
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i>
-                    You can join this active session by clicking the "Join Session" button below.
-                </div>
-            `;
-        } else {
-            content += `
-                <div class="alert alert-secondary">
-                    <i class="fas fa-clock me-2"></i>
-                    This session is not yet active. Check back at the scheduled time.
-                </div>
-            `;
-        }
-        
-        document.getElementById('session-details-content').innerHTML = content;
-        
-        // Show modal
-        const modal = new bootstrap.Modal(document.getElementById('sessionDetailsModal'));
-        modal.show();
-        
-    } catch (error) {
-        console.error('Error loading session details:', error);
-        alert('Failed to load session details: ' + error.message);
+    // If date is in the past
+    if (diff < 0) {
+        return 'Passed';
+    }
+    
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (days > 0) {
+        return `in ${days} day${days > 1 ? 's' : ''}`;
+    } else if (hours > 0) {
+        return `in ${hours} hour${hours > 1 ? 's' : ''}`;
+    } else {
+        return `in ${minutes} minute${minutes > 1 ? 's' : ''}`;
     }
 }

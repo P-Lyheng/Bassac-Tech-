@@ -1,0 +1,155 @@
+/* loader.css - Add this to your main CSS file or create a separate file */
+
+/* Modern Loading Animation */
+.page-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.98);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition: opacity 0.5s ease;
+}
+
+.loader-content {
+    text-align: center;
+}
+
+.loader-spinner {
+    display: inline-block;
+    position: relative;
+    width: 80px;
+    height: 80px;
+    margin-bottom: 1.5rem;
+}
+
+.loader-spinner div {
+    position: absolute;
+    top: 33px;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: var(--primary-color, #4a6cf7);
+    animation-timing-function: cubic-bezier(0, 1, 1, 0);
+}
+
+.loader-spinner div:nth-child(1) {
+    left: 8px;
+    animation: loader-spinner1 0.6s infinite;
+}
+
+.loader-spinner div:nth-child(2) {
+    left: 8px;
+    animation: loader-spinner2 0.6s infinite;
+}
+
+.loader-spinner div:nth-child(3) {
+    left: 32px;
+    animation: loader-spinner2 0.6s infinite;
+}
+
+.loader-spinner div:nth-child(4) {
+    left: 56px;
+    animation: loader-spinner3 0.6s infinite;
+}
+
+@keyframes loader-spinner1 {
+    0% {
+        transform: scale(0);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes loader-spinner3 {
+    0% {
+        transform: scale(1);
+    }
+    100% {
+        transform: scale(0);
+    }
+}
+
+@keyframes loader-spinner2 {
+    0% {
+        transform: translate(0, 0);
+    }
+    100% {
+        transform: translate(24px, 0);
+    }
+}
+
+.loader-text {
+    font-size: 1.25rem;
+    color: var(--text-color, #343a40);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.loader-subtext {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+/* Fade-in animation for main content */
+.fade-in-up {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.8s ease forwards;
+    animation-delay: 0.3s;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Button animation */
+.btn-pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(74, 108, 247, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(74, 108, 247, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(74, 108, 247, 0);
+    }
+}
+
+/* Shake animation for error */
+.shake {
+    animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake {
+    10%, 90% {
+        transform: translate3d(-1px, 0, 0);
+    }
+    20%, 80% {
+        transform: translate3d(2px, 0, 0);
+    }
+    30%, 50%, 70% {
+        transform: translate3d(-4px, 0, 0);
+    }
+    40%, 60% {
+        transform: translate3d(4px, 0, 0);
+    }
+}

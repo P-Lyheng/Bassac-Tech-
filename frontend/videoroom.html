@@ -93,6 +93,29 @@
             flex: 1;
             margin-right: 10px;
         }
+
+        .video-controls {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .card:hover .video-controls {
+            opacity: 1;
+        }
+
+        .participant-info {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+        }
     </style>
 </head>
 <body>
@@ -165,9 +188,16 @@
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     
+    <!-- Socket.IO client -->
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    
+    <!-- WebRTC adapter -->
+    <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"></script>
+
+    
     <!-- App scripts -->
     <script src="js/auth.js"></script>
     <script src="js/videoroom.js"></script>
-    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
 </body>
 </html>

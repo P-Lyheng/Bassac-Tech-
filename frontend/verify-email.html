@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Email | Bassac Academy</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .verification-container {
+            max-width: 500px;
+            margin: 3rem auto;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+        }
+
+        .otp-input-container {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 2rem 0;
+        }
+
+        .otp-input {
+            width: 50px;
+            height: 60px;
+            text-align: center;
+            font-size: 1.5rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+        }
+
+        .otp-input:focus {
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+            outline: none;
+        }
+
+        .timer {
+            text-align: center;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Simple Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <div class="logo">Bassac Academy</div>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/login">Log In</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Verification Form -->
+    <div class="container">
+        <div class="verification-container">
+            <div class="text-center mb-4">
+                <h2>Verify Your Email</h2>
+                <p>We've sent a verification code to <span id="user-email" class="fw-bold"></span></p>
+            </div>
+
+            <div class="otp-input-container">
+                <input type="text" maxlength="1" class="otp-input" data-index="0">
+                <input type="text" maxlength="1" class="otp-input" data-index="1">
+                <input type="text" maxlength="1" class="otp-input" data-index="2">
+                <input type="text" maxlength="1" class="otp-input" data-index="3">
+                <input type="text" maxlength="1" class="otp-input" data-index="4">
+                <input type="text" maxlength="1" class="otp-input" data-index="5">
+            </div>
+
+            <div class="timer">
+                Code expires in <span id="countdown">15:00</span>
+            </div>
+
+            <div class="alert alert-danger d-none" id="verification-error"></div>
+            <div class="alert alert-success d-none" id="verification-success"></div>
+
+            <div class="d-grid gap-2">
+                <button id="verify-btn" class="btn btn-primary">Verify Email</button>
+                <button id="resend-btn" class="btn btn-outline-secondary" disabled>
+                    Resend Code (<span id="resend-timer">60</span>s)
+                </button>
+            </div>
+
+            <div class="text-center mt-3">
+                <a href="/register" class="text-decoration-none">Change email address</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Verification JS -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Display the email from URL parameter
+            const params = new URLSearchParams(window.location.search);
+            const email = params.get('email');
+            const userEmailElement = document.getElementById('user-email');
+            
+            if (email) {
+                userEmailElement.textContent = email;
+            } else {
+                window.location.href = '/register';
+                return;
+            }
+
+            // OTP input handling
+            const otpInputs = document.querySelectorAll('.otp-input');
+            const verifyBtn = document.getElementById('verify-btn');
+            const resendBtn = document.getElementById('resend-btn');
+            const verificationError = document.getElementById('verification-error');
+            const verificationSuccess = document.getElementById('verification-success');
+            const resendTimerElement = document.getElementById('resend-timer');
+            const countdownElement = document.getElementById('countdown');
+
+            // Focus on first input on page load
+            otpInputs[0].focus();
+
+            // Handle input in OTP fields
+            otpInputs.forEach((input, index) => {
+                // Handle input
+                input.addEventListener('input', function (e) {
+                    // Only allow numbers
+                    this.value = this.value.replace(/[^0-9]/g, '');
+
+                    // Auto focus next input
+                    if (this.value && index < otpInputs.length - 1) {
+                        otpInputs[index + 1].focus();
+                    }
+
+                    // Check if all inputs are filled
+                    checkAllInputsFilled();
+                });
+
+                // Handle keyboard navigation
+                input.addEventListener('keydown', function (e) {
+                    // Move to previous input on backspace if current is empty
+                    if (e.key === 'Backspace' && !this.value && index > 0) {
+                        otpInputs[index - 1].focus();
+                        e.preventDefault();
+                    }
+                    
+                    // Move to next input on right arrow
+                    if (e.key === 'ArrowRight' && index < otpInputs.length - 1) {
+                        otpInputs[index + 1].focus();
+                        e.preventDefault();
+                    }
+                    
+                    // Move to previous input on left arrow
+                    if (e.key === 'ArrowLeft' && index > 0) {
+                        otpInputs[index - 1].focus();
+                        e.preventDefault();
+                    }
+                });
+
+                // Handle paste event
+                input.addEventListener('paste', function (e) {
+                    e.preventDefault();
+                    const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+                    
+                    // If pasted text is 6 digits, distribute across inputs
+                    if (/^\d{6}$/.test(pastedText)) {
+                        for (let i = 0; i < otpInputs.length; i++) {
+                            otpInputs[i].value = pastedText[i];
+                        }
+                        checkAllInputsFilled();
+                    }
+                });
+            });
+
+            // Check if all OTP inputs are filled
+            function checkAllInputsFilled() {
+                const allFilled = Array.from(otpInputs).every(input => input.value);
+                verifyBtn.disabled = !allFilled;
+            }
+
+            // Get OTP code from inputs
+            function getOtpCode() {
+                return Array.from(otpInputs).map(input => input.value).join('');
+            }
+
+            // Verify button click handler
+            verifyBtn.addEventListener('click', async function () {
+                const otp = getOtpCode();
+                
+                // Hide any previous messages
+                verificationError.classList.add('d-none');
+                verificationSuccess.classList.add('d-none');
+                
+                try {
+                    verifyBtn.disabled = true;
+                    verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Verifying...';
+
+                    const response = await fetch('/api/auth/verify-otp', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            email: email,
+                            otp: otp
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Verification failed');
+                    }
+
+                    // Success
+                    verificationSuccess.textContent = 'Email verification successful! Redirecting...';
+                    verificationSuccess.classList.remove('d-none');
+                    
+                    // Redirect after successful verification
+                    setTimeout(() => {
+                        if (data.user.role === 'teacher') {
+                            window.location.href = '/dashboard/teacher';
+                        } else {
+                            window.location.href = '/dashboard/student';
+                        }
+                    }, 2000);
+                    
+                } catch (error) {
+                    verificationError.textContent = error.message || 'Verification failed. Please try again.';
+                    verificationError.classList.remove('d-none');
+                    verifyBtn.disabled = false;
+                    verifyBtn.innerHTML = 'Verify Email';
+                }
+            });
+
+            // Resend button click handler
+            resendBtn.addEventListener('click', async function () {
+                // Hide any previous messages
+                verificationError.classList.add('d-none');
+                verificationSuccess.classList.add('d-none');
+                
+                try {
+                    resendBtn.disabled = true;
+                    resendBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sending...';
+
+                    const response = await fetch('/api/auth/resend-otp', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            email: email
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Failed to resend code');
+                    }
+
+                    // Success message
+                    verificationSuccess.textContent = 'A new verification code has been sent to your email.';
+                    verificationSuccess.classList.remove('d-none');
+                    
+                    // Reset OTP inputs
+                    otpInputs.forEach(input => {
+                        input.value = '';
+                    });
+                    otpInputs[0].focus();
+                    
+                    // Restart countdown and resend timer
+                    startCountdown();
+                    startResendTimer();
+                    
+                } catch (error) {
+                    verificationError.textContent = error.message || 'Failed to resend code. Please try again.';
+                    verificationError.classList.remove('d-none');
+                    resendBtn.disabled = false;
+                    resendBtn.innerHTML = 'Resend Code';
+                }
+            });
+
+            // Countdown timer (15 minutes)
+            function startCountdown() {
+                let timeLeft = 15 * 60; // 15 minutes in seconds
+                
+                clearInterval(window.countdownInterval);
+                
+                window.countdownInterval = setInterval(() => {
+                    const minutes = Math.floor(timeLeft / 60);
+                    const seconds = timeLeft % 60;
+                    
+                    countdownElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(window.countdownInterval);
+                        countdownElement.textContent = '00:00';
+                        verificationError.textContent = 'Verification code has expired. Please request a new one.';
+                        verificationError.classList.remove('d-none');
+                        verifyBtn.disabled = true;
+                    }
+                    
+                    timeLeft -= 1;
+                }, 1000);
+            }
+
+            // Resend timer (60 seconds)
+            function startResendTimer() {
+                let seconds = 60;
+                resendBtn.disabled = true;
+                
+                clearInterval(window.resendInterval);
+                
+                window.resendInterval = setInterval(() => {
+                    seconds -= 1;
+                    resendTimerElement.textContent = seconds;
+                    
+                    if (seconds <= 0) {
+                        clearInterval(window.resendInterval);
+                        resendBtn.disabled = false;
+                        resendBtn.innerHTML = 'Resend Code';
+                    }
+                }, 1000);
+            }
+
+            // Start timers on page load
+            startCountdown();
+            startResendTimer();
+        });
+    </script>
+</body>
+
+</html>

@@ -3,14 +3,14 @@
  * Handles functionality for the teacher dashboard page
  */
 
-alert('Welcome to the Teacher Dashboard!');
+
 document.addEventListener('DOMContentLoaded', async function() {
     // Check authentication
     const user = await requireAuth();
     
     // Redirect if not instructor/teacher
     if (!user || (user.role !== 'instructor' && user.role !== 'teacher' && user.role !== 'admin')) {
-        window.location.href = '/login.html';
+        window.location.href = '/login';
         return;
     }
     
@@ -350,7 +350,7 @@ async function loadRecentClasses() {
                     </div>
                     <div class="card-footer bg-transparent">
                         <div class="d-flex justify-content-between">
-                            <a href="class-details.html?id=${classItem.class_id}" class="btn btn-sm btn-outline-primary">
+                            <a href="class-details?id=${classItem.class_id}" class="btn btn-sm btn-outline-primary">
                                 <i class="fas fa-info-circle me-1"></i> Details
                             </a>
                             <button class="btn btn-sm btn-success create-session-for-class-btn" 

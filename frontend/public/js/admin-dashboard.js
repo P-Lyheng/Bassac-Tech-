@@ -73,6 +73,7 @@ async function loadStats() {
         document.getElementById('classes-count').textContent = stats.classesCount || 0;
         document.getElementById('sessions-count').textContent = stats.sessionsCount || 0;
         document.getElementById('active-count').textContent = stats.activeSessionsCount || 0;
+        console.log('Stats loaded:', stats);
     } catch (error) {
         console.error('Error loading stats:', error);
         // Show fallback stats (don't show error to user)

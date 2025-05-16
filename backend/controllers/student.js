@@ -110,7 +110,7 @@ const getUpcomingSessions = async (req, res) => {
        WHERE ce.student_id = ? AND s.session_status = 'scheduled' AND s.scheduled_start > NOW() AND ce.status = 'approved'
        ORDER BY s.scheduled_start ASC
        LIMIT 10`,
-      [studentId]
+      [studentId] 
     );
     
     res.json(sessions);
@@ -126,14 +126,14 @@ const getEnrolledClasses = async (req, res) => {
 
   try {
     const [classes] = await pool.query(
-      `SELECT c.*, ce.enrollment_date, ce.status as enrollment_status,
+      `SELECT c.*, ce.enrolled_at, ce.status as enrollment_status,
        u.username as instructor_name,
        (SELECT COUNT(*) FROM class_enrollments WHERE class_id = c.class_id AND status = 'approved') as enrolled_count
        FROM classes c
        JOIN class_enrollments ce ON c.class_id = ce.class_id
        LEFT JOIN users u ON c.instructor_id = u.user_id
        WHERE ce.student_id = ?
-       ORDER BY ce.enrollment_date DESC`,
+       ORDER BY ce.enrolled_at DESC`,
       [studentId]
     );
     
@@ -147,21 +147,19 @@ const getEnrolledClasses = async (req, res) => {
 // Get available learning materials for student
 const getLearningMaterials = async (req, res) => {
   const studentId = req.user.id;
-  const classId = req.query.classId; // Optional filter by class
+  const classId = req.query.classId;
 
   try {
     let query = `
-      SELECT cm.*, c.title as class_name, u.username as uploaded_by
+      SELECT cm.*, c.title as class_name
       FROM class_materials cm
       JOIN classes c ON cm.class_id = c.class_id
       JOIN class_enrollments ce ON c.class_id = ce.class_id
-      LEFT JOIN users u ON cm.uploaded_by = u.user_id
       WHERE ce.student_id = ? AND ce.status = 'approved'
     `;
     
     const queryParams = [studentId];
     
-    // Add class filter if provided
     if (classId) {
       query += ` AND cm.class_id = ?`;
       queryParams.push(classId);
